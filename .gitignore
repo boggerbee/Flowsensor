@@ -1,0 +1,7 @@
+build/*
+logs/*
+/bin/
+.classpath
+.project
+.settings/*
+config.json
