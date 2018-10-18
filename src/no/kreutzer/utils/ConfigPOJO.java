@@ -9,7 +9,7 @@ public class ConfigPOJO {
 	private String wsEndPoint = "ws://data.kreutzer.no/dataserver/websocket";
 	private long totalFlow = 0;
 	private boolean liveFlow = false;
-	private String flowSensorClassName = "no.kreutzer.water.HallEffectFlowMeter";
+	private String flowSensorClassName = "no.kreutzer.flow.HallEffectFlowMeter";
 	private int pulsesPerLitre = 585;
 	
 	public int getPulsesPerLitre() {

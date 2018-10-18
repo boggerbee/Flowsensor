@@ -30,11 +30,22 @@ public class Controller {
     private FlowMeter flow;
     private ScheduledExecutorService scheduledPool;
     private WebSocketService ws;
+    private long lastCount;
+    private static final int INTERVAL = 10;
 
     private FlowHandler flowHandler = new FlowHandler() {
         @Override
         public void onCount(long total, int current) {
-
+            if ((total-lastCount) > INTERVAL) {
+                logger.info("Count:"+total+":"+current);
+                lastCount = total;
+                // store total
+                conf.getConfig().setTotalFlow(total);
+                conf.writeConfig();
+                // call websock
+                // TODO: Use timer to keep track of open and close.. maybe put logic in service class
+                //sendFlowMessage(total,current); // TODO: this may take too much time, fire timer..
+            } 
         }
     };
 
@@ -43,50 +54,10 @@ public class Controller {
         flow = conf.getFlowSensorImpl(flowHandler);
         flow.setTotal(conf.getConfig().getTotalFlow());
         flow.setPPL(conf.getConfig().getPulsesPerLitre());
+        lastCount = flow.getTotalCount();
 
-        scheduledPool = Executors.newScheduledThreadPool(4);
-        scheduledPool.schedule(runnableTask, 1, TimeUnit.SECONDS);
-        scheduledPool.scheduleAtFixedRate(flowPoller, 1000, 200, TimeUnit.MILLISECONDS);
-        
         logger.info("Init done!");
     }
-
-    private Runnable runnableTask = new Runnable() {
-        @Override
-        public void run() {
-        	try {
-	            conf.getConfig().setTotalFlow(flow.getTotalCount());
-	            conf.writeConfig();
-	            
-	            ws.checkAlive(); 
-	
-                scheduledPool.schedule(runnableTask, 1000, TimeUnit.SECONDS);
-	        } catch (RuntimeException e){
-	            logger.error("Uncaught Runtime Exception",e);
-	            return; // Keep working
-	        } catch (Throwable e){
-	            logger.error("Unrecoverable error",e);
-	            throw e;
-	        }
-        }
-    };
-    
-    private Runnable flowPoller = new Runnable() {
-        @Override
-        public void run() {
-        	try {
-	            if (conf.getConfig().isLiveFlow()) {
-	                sendFlowMessage(flow.getTotalCount(), flow.getPulsesPerSecond());
-	            }    
-            } catch (RuntimeException e){
-                logger.error("Uncaught Runtime Exception",e);
-                return; // Keep working
-            } catch (Throwable e){
-                logger.error("Unrecoverable error",e);
-                throw e;
-            }        
-        }
-    };
     
     private void sendFlowMessage(long total, int current) {
         JsonObject json = Json.createObjectBuilder()
@@ -106,7 +77,7 @@ public class Controller {
                 try {
                     Thread.sleep(100);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    logger.error("Main loop interrupted!!", e);
                 }
             }
         }
