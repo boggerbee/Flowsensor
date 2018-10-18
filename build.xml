@@ -13,7 +13,7 @@
         <!-- fileset dir="${pi4j.dir}" includes="**/*.jar"/ -->
         <fileset dir="${lib.dir}" includes="**/*.jar"/>
     </path>
-    <property name="main-class"  value="no.kreutzer.water.Controller"/>
+    <property name="main-class"  value="no.kreutzer.flow.Controller"/>
 
     <target name="clean">
         <delete dir="${build.dir}"/>
