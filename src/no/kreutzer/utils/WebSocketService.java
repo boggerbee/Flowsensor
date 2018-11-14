@@ -3,19 +3,29 @@ package no.kreutzer.utils;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.concurrent.CountDownLatch;
+
+import javax.annotation.PostConstruct;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.java_websocket.drafts.Draft_6455;
 
+@ApplicationScoped
 public class WebSocketService {
     private static final Logger logger = LogManager.getLogger(WebSocketService.class);
     final static CountDownLatch messageLatch = new CountDownLatch(1);
     private JavaWebSocketClient client;
     private String uri;
+    private @Inject ConfigService conf;
 
-    public WebSocketService(String uri) {
-        this.uri = uri;
-           
+    public WebSocketService() {
+    }
+    
+    @PostConstruct
+    public void init() {
+        this.uri = conf.getConfig().getWsEndPoint();
         connect();
     }
     

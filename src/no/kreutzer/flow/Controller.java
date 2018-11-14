@@ -26,10 +26,10 @@ import no.kreutzer.utils.WebSocketService;
 public class Controller {
     private static final Logger logger = LogManager.getLogger(Controller.class);
     private @Inject ConfigService conf;
+    private @Inject WebSocketService ws;
 
     private FlowMeter flow;
     private ScheduledExecutorService scheduledPool;
-    private WebSocketService ws;
     private long lastCount;
     private static final int INTERVAL = 10;
 
@@ -50,11 +50,12 @@ public class Controller {
     };
 
     private void init() {
-        ws = new WebSocketService(conf.getConfig().getWsEndPoint());
         flow = conf.getFlowSensorImpl(flowHandler);
         flow.setTotal(conf.getConfig().getTotalFlow());
         flow.setPPL(conf.getConfig().getPulsesPerLitre());
         lastCount = flow.getTotalCount();
+        
+        ws.checkAlive();
 
         logger.info("Init done!");
     }
