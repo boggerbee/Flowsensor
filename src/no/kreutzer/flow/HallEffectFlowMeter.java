@@ -16,8 +16,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class HallEffectFlowMeter implements FlowMeter {
     private static final Logger logger = LogManager.getLogger(HallEffectFlowMeter.class);
-	final GpioController gpio = GpioFactory.getInstance();
-	final GpioPinDigitalInput flowPin = gpio.provisionDigitalInputPin(RCMPin.GPIO_17,"Flow sensor",PinPullResistance.PULL_UP);
 	
 	private AtomicInteger pulseIncrement = new AtomicInteger();
 	private AtomicInteger pulseTotal = new AtomicInteger();
@@ -29,6 +27,10 @@ public class HallEffectFlowMeter implements FlowMeter {
 	
 	/* Constructor */
 	public HallEffectFlowMeter (FlowHandler f) {
+	    GpioFactory.setDefaultProvider(new RaspiGpioProvider(RaspiPinNumberingScheme.BROADCOM_PIN_NUMBERING));
+	    final GpioController gpio = GpioFactory.getInstance();
+	    final GpioPinDigitalInput flowPin = gpio.provisionDigitalInputPin(RCMPin.GPIO_17,"Flow sensor",PinPullResistance.PULL_UP);
+	    
 		logger.info("HallEffectFlowMeter created");  
 		flowHandler = f;
 		
