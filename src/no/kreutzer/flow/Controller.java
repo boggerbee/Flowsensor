@@ -8,8 +8,15 @@ package no.kreutzer.flow;
 import org.apache.logging.log4j.LogManager;
 import org.jboss.weld.environment.se.Weld;
 import org.jboss.weld.environment.se.WeldContainer;
+
+import com.pi4j.io.i2c.I2CFactory.UnsupportedBusNumberException;
+
+import de.pi3g.pi.oled.Font;
+import de.pi3g.pi.oled.OLEDDisplay;
+
 import org.apache.logging.log4j.Logger;
 
+import java.io.IOException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -56,6 +63,19 @@ public class Controller {
         lastCount = flow.getTotalCount();
         
         ws.checkAlive();
+        
+        OLEDDisplay display;
+        try {
+            display = new OLEDDisplay();
+            display.drawStringCentered("Hello World!",Font.FONT_5X8, 25, true);
+            display.update();        
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (UnsupportedBusNumberException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
 
         logger.info("Init done!");
     }
