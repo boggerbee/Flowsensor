@@ -15,7 +15,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 
 import no.kreutzer.flow.FlowHandler;
 import no.kreutzer.flow.FlowMeter;
-
+import no.kreutzer.oled.AbstractDisplay;
 
 @ApplicationScoped
 public class ConfigService {
@@ -87,5 +87,17 @@ public class ConfigService {
 		}
 		return null;
 	}
+
+    public AbstractDisplay getDisplayImpl() {
+        try {
+            Class<?> clazz = Class.forName(config.getDisplayClassName());
+            Constructor<?> ctor = clazz.getConstructor();
+            return (AbstractDisplay)ctor.newInstance();
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            e.printStackTrace();
+        }
+        return null;
+    }
 
 }

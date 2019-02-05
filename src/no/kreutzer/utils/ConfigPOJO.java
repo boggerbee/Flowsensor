@@ -10,7 +10,14 @@ public class ConfigPOJO {
 	private long totalFlow = 0;
 	private boolean liveFlow = false;
 	private String flowSensorClassName = "no.kreutzer.flow.HallEffectFlowMeter";
-	private int pulsesPerLitre = 585;
+    private String displayClassName = "no.kreutzer.oled.OLEDDisplay";
+	public String getDisplayClassName() {
+        return displayClassName;
+    }
+    public void setDisplayClassName(String displayClassName) {
+        this.displayClassName = displayClassName;
+    }
+    private int pulsesPerLitre = 585;
 	
 	public int getPulsesPerLitre() {
         return pulsesPerLitre;
