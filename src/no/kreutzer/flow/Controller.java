@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.time.LocalDateTime;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -66,8 +67,20 @@ public class Controller {
     };
     
     private void updateDisplay(int current) {
-        oled.clearRect(0, 0, oled.getWidth(), 5, false);
-        oled.drawString("FLOW: "+current ,Font.FONT_4X5, 1,1, true);
+        oled.clearRect(0, oled.getHeight()/2 -8, oled.getWidth(),10 , false);
+        oled.drawStringCentered(current + " pps" ,Font.FONT_5X8, 25, true);
+        try {
+            oled.update();
+        } catch (IOException e) {
+            logger.error(e);
+        }     
+    }
+    
+    private void displayTime() {
+        LocalDateTime now = LocalDateTime.now();
+        String s = now.getHour() +":"+now.getMinute()+":"+now.getSecond();
+        oled.clearRect(0, 0, oled.getWidth(),10 , false);
+        oled.drawString(s ,Font.FONT_4X5, 1,1, true);
         try {
             oled.update();
         } catch (IOException e) {
@@ -86,20 +99,19 @@ public class Controller {
         
         oled.drawString(getInetAddress() ,Font.FONT_4X5, 1,oled.getHeight()-6, true);
         oled.drawStringRight("X",Font.FONT_4X5, oled.getHeight()-6, true);
-        display("HELLO!");
+        displayTime();
+        
+        Executors.newScheduledThreadPool(2).scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                displayTime();
+            }
+        }, 1000,1000, TimeUnit.MILLISECONDS);     
+        
 
         logger.info("Init done!");
     }
     
-    private void display(String s) {
-        oled.drawStringCentered(s ,Font.FONT_5X8, 25, true);
-        //oled.drawTestLine();
-        try {
-            oled.update();
-        } catch (IOException e) {
-            logger.error(e);
-        }        
-    }
     
     private void sendFlowMessage(long total, int current) {
         JsonObject json = Json.createObjectBuilder()
