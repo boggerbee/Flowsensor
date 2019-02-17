@@ -21,9 +21,15 @@ import org.apache.logging.log4j.Logger;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Enumeration;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -43,18 +49,16 @@ public class Controller {
     private @Inject WebSocketService ws;
 
     private FlowMeter flow;
-    private ScheduledExecutorService scheduledPool;
-    private long lastCount;
     private static final int INTERVAL = 10;
     private AbstractDisplay oled;
+    private long lastCount;
 
     private FlowHandler flowHandler = new FlowHandler() {
         @Override
         public void onCount(long total, int current) {
             if ((total-lastCount) > INTERVAL) {
-                //logger.info("Count:"+total+":"+current);
-                updateDisplay(current);
                 lastCount = total;
+                //logger.info("Count:"+total+":"+current);
                 // store total
                 conf.getConfig().setTotalFlow(total);
                 conf.writeConfig();
@@ -66,19 +70,13 @@ public class Controller {
 
     };
     
-    private void updateDisplay(int current) {
+    private void updateDisplay() {
         oled.clearRect(0, oled.getHeight()/2 -8, oled.getWidth(),10 , false);
-        oled.drawStringCentered(current + " pps" ,Font.FONT_5X8, 25, true);
-        try {
-            oled.update();
-        } catch (IOException e) {
-            logger.error(e);
-        }     
-    }
-    
-    private void displayTime() {
+        oled.drawStringCentered(flow.getPulsesPerSecond() + " pps" ,Font.FONT_5X8, 25, true);
+        
         LocalDateTime now = LocalDateTime.now();
-        String s = now.getHour() +":"+now.getMinute()+":"+now.getSecond();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+        String s = now.format(formatter);
         oled.clearRect(0, 0, oled.getWidth(),10 , false);
         oled.drawString(s ,Font.FONT_4X5, 1,1, true);
         try {
@@ -93,20 +91,18 @@ public class Controller {
         oled = conf.getDisplayImpl();
         flow.setTotal(conf.getConfig().getTotalFlow());
         flow.setPPL(conf.getConfig().getPulsesPerLitre());
-        lastCount = flow.getTotalCount();
         
         ws.checkAlive();
         
-        oled.drawString(getInetAddress() ,Font.FONT_4X5, 1,oled.getHeight()-6, true);
+        oled.drawString(getFirstNonLoopbackAddress(true, false).getHostAddress() ,Font.FONT_4X5, 1,oled.getHeight()-6, true);
         oled.drawStringRight("X",Font.FONT_4X5, oled.getHeight()-6, true);
-        displayTime();
         
         Executors.newScheduledThreadPool(2).scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
-                displayTime();
+                updateDisplay();
             }
-        }, 1000,1000, TimeUnit.MILLISECONDS);     
+        }, 500,1000, TimeUnit.MILLISECONDS);     
         
 
         logger.info("Init done!");
@@ -119,26 +115,7 @@ public class Controller {
                 .build();
         ws.sendMessage(json.toString());
     }    
-    
-    private String runSystemCmd(String cmd) {
-        String s,r=null;
-        try {
-            Process p = Runtime.getRuntime().exec(cmd);
-            
-            BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-            r = stdInput.readLine();
-            
-            // read any errors from the attempted command
-            while ((s = stdError.readLine()) != null) {
-                logger.error(s);
-            }
-        } catch (IOException e) {
-            logger.error(e);
-        }        
-        return r;
-    }
-
+/*
     public String getInetAddress() {
         InetAddress inetAddress;
         try {
@@ -148,6 +125,36 @@ public class Controller {
             logger.error(e);
             return "UnknownHostException";
         }
+    }
+ */   
+    private static InetAddress getFirstNonLoopbackAddress(boolean preferIpv4, boolean preferIPv6) {
+        Enumeration<NetworkInterface> en;
+        try {
+            en = NetworkInterface.getNetworkInterfaces();
+            while (en.hasMoreElements()) {
+                NetworkInterface i = (NetworkInterface) en.nextElement();
+                for (Enumeration<InetAddress> en2 = i.getInetAddresses(); en2.hasMoreElements();) {
+                    InetAddress addr = (InetAddress) en2.nextElement();
+                    if (!addr.isLoopbackAddress()) {
+                        if (addr instanceof Inet4Address) {
+                            if (preferIPv6) {
+                                continue;
+                            }
+                            return addr;
+                        }
+                        if (addr instanceof Inet6Address) {
+                            if (preferIpv4) {
+                                continue;
+                            }
+                            return addr;
+                        }
+                    }
+                }
+            }
+        } catch (SocketException e) {
+            logger.error(e);
+        }
+        return null;
     }
     
     public static void main(String args[]) {

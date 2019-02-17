@@ -23,8 +23,9 @@ import com.pi4j.io.i2c.I2CDevice;
 import com.pi4j.io.i2c.I2CFactory;
 import com.pi4j.io.i2c.I2CFactory.UnsupportedBusNumberException;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * A raspberry pi driver for the 128x64 pixel OLED display (i2c bus).
@@ -56,7 +57,7 @@ import java.util.logging.Logger;
  */
 public class OLEDDisplay extends AbstractDisplay {
 
-    private static final Logger LOGGER = Logger.getLogger(OLEDDisplay.class.getCanonicalName());
+    private static final Logger LOGGER = LogManager.getLogger(OLEDDisplay.class.getCanonicalName());
 
     private static final int DEFAULT_I2C_BUS = I2CBus.BUS_1;
     private static final int DEFAULT_DISPLAY_ADDRESS = 0x3d;
@@ -136,7 +137,7 @@ public class OLEDDisplay extends AbstractDisplay {
         bus = I2CFactory.getInstance(busNumber);
         device = bus.getDevice(displayAddress);
 
-        LOGGER.log(Level.INFO, "Created OLEDDisplay");
+        LOGGER.info("Created OLEDDisplay");
 
         clear();
 
@@ -214,7 +215,7 @@ public class OLEDDisplay extends AbstractDisplay {
             //now we close the bus
             bus.close();
         } catch (IOException ex) {
-            LOGGER.log(Level.FINE, "Closing i2c bus");
+            LOGGER.info("Closing i2c bus");
         }
     }
 }
