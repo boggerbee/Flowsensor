@@ -13,6 +13,7 @@ import com.pi4j.io.i2c.I2CFactory.UnsupportedBusNumberException;
 
 import no.kreutzer.oled.AbstractDisplay;
 import no.kreutzer.oled.Font;
+import no.kreutzer.oled.LargeFont;
 import no.kreutzer.oled.MockOLEDDisplay;
 import no.kreutzer.oled.OLEDDisplay;
 
@@ -71,8 +72,8 @@ public class Controller {
     };
     
     private void updateDisplay() {
-        oled.clearRect(0, oled.getHeight()/2 -8, oled.getWidth(),10 , false);
-        oled.drawStringCentered(flow.getPulsesPerSecond() + " pps" ,Font.FONT_5X8, 25, true);
+        oled.clearRect(0, 8, oled.getWidth(),oled.getHeight()-20 , false);
+        oled.drawStringCentered(flow.getPulsesPerSecond() + " pps" ,LargeFont.ARIAL_32, 15, true);
         
         LocalDateTime now = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");

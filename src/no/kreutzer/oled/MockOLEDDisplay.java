@@ -5,20 +5,19 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.pi4j.io.i2c.I2CFactory.UnsupportedBusNumberException;
 
 
 public class MockOLEDDisplay extends AbstractDisplay {
 
-    private static final Logger LOGGER = Logger.getLogger(MockOLEDDisplay.class.getCanonicalName());
+    private static final Logger LOGGER = LogManager.getLogger(MockOLEDDisplay.class.getCanonicalName());
     private BufferedImage image = convertImageBuffer();
     private JFrame frame = new JFrame("128x64 OLED Display");
     private JLabel lbl = new JLabel();
@@ -35,7 +34,7 @@ public class MockOLEDDisplay extends AbstractDisplay {
      * @throws com.pi4j.io.i2c.I2CFactory.UnsupportedBusNumberException
      */
     public MockOLEDDisplay()  throws IOException, UnsupportedBusNumberException {
-        LOGGER.log(Level.INFO, "Created MockOLEDDisplay");
+        LOGGER.info("Created MockOLEDDisplay");
         clear();
         init();
     }

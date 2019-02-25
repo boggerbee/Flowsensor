@@ -18,6 +18,13 @@ package no.kreutzer.oled;
  * MA 02110-1301  USA
  */
 
+import com.pi4j.io.gpio.GpioController;
+import com.pi4j.io.gpio.GpioFactory;
+import com.pi4j.io.gpio.GpioPinDigitalOutput;
+import com.pi4j.io.gpio.PinState;
+import com.pi4j.io.gpio.RCMPin;
+import com.pi4j.io.gpio.RaspiGpioProvider;
+import com.pi4j.io.gpio.RaspiPinNumberingScheme;
 import com.pi4j.io.i2c.I2CBus;
 import com.pi4j.io.i2c.I2CDevice;
 import com.pi4j.io.i2c.I2CFactory;
@@ -101,6 +108,7 @@ public class OLEDDisplay extends AbstractDisplay {
 
     private final I2CBus bus;
     private final I2CDevice device;
+    private GpioPinDigitalOutput resetPin;
 
     /**
      * creates an oled display object with default
@@ -134,6 +142,11 @@ public class OLEDDisplay extends AbstractDisplay {
      * @throws com.pi4j.io.i2c.I2CFactory.UnsupportedBusNumberException
      */
     public OLEDDisplay(int busNumber, int displayAddress) throws IOException, UnsupportedBusNumberException {
+        GpioFactory.setDefaultProvider(new RaspiGpioProvider(RaspiPinNumberingScheme.BROADCOM_PIN_NUMBERING));
+        final GpioController gpio = GpioFactory.getInstance();
+        resetPin = gpio.provisionDigitalOutputPin(RCMPin.GPIO_24);
+        resetPin.setState(PinState.HIGH);
+        
         bus = I2CFactory.getInstance(busNumber);
         device = bus.getDevice(displayAddress);
 
@@ -185,6 +198,18 @@ public class OLEDDisplay extends AbstractDisplay {
         writeCommand(SSD1306_NORMALDISPLAY);
 
         writeCommand(SSD1306_DISPLAYON);//--turn on oled panel
+        
+        reset();
+    }
+
+    private void reset() {
+        resetPin.setState(PinState.LOW);
+        try {
+            Thread.sleep(10);
+        } catch (InterruptedException e) {
+            LOGGER.error("reset error: "+e);
+        }
+        resetPin.setState(PinState.HIGH);
     }
 
     /**

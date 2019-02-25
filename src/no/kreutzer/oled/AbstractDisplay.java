@@ -45,7 +45,15 @@ public abstract class AbstractDisplay {
     public synchronized void drawChar(char c, Font font, int x, int y, boolean on) {
         font.drawChar(this, c, x, y, on);
     }
-
+    
+    public synchronized void drawChar(char c, LargeFont font, int x, int y, boolean on) {
+        font.drawChar(this, c, x, y, on);
+    }
+    
+    public synchronized void drawString(String string, LargeFont font, int x, int y, boolean on) {
+        font.drawString(this, string, x, y, on);
+    }
+    
     public synchronized void drawString(String string, Font font, int x, int y, boolean on) {
         int posX = x;
         int posY = y;
@@ -62,11 +70,15 @@ public abstract class AbstractDisplay {
             }
         }
     }
-
+    
     public synchronized void drawStringCentered(String string, Font font, int y, boolean on) {
         final int strSizeX = string.length() * font.getOutterWidth();
         final int x = (this.getWidth() - strSizeX) / 2;
         drawString(string, font, x, y, on);
+    }
+    
+    public synchronized void drawStringCentered(String string, LargeFont font, int y, boolean on) {
+        font.drawStringCentered(this, string, y, on);
     }
     
     public synchronized void drawStringRight(String string, Font font, int y, boolean on) {
